@@ -6,18 +6,20 @@ namespace DIContainer.Commands
     public class TimerCommand : BaseCommand
     {
         private readonly CommandLineArgs arguments;
+        private ITextWriter writer;
 
-        public TimerCommand(CommandLineArgs arguments)
+        public TimerCommand(CommandLineArgs arguments, ITextWriter writer)
         {
             this.arguments = arguments;
+            this.writer = writer;
         }
 
         public override void Execute()
         {
             var timeout = TimeSpan.FromMilliseconds(arguments.GetInt(0));
-            Console.WriteLine("Waiting for " + timeout);
+            writer.Write("Waiting for " + timeout);
             Thread.Sleep(timeout);
-            Console.WriteLine("Done!");
+            writer.Write("Done!");
         }
     }
 }

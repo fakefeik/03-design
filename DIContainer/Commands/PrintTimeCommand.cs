@@ -4,9 +4,16 @@ namespace DIContainer.Commands
 {
     public class PrintTimeCommand : BaseCommand
     {
+        private ITextWriter writer;
+
+        public PrintTimeCommand(ITextWriter writer)
+        {
+            this.writer = writer;
+        }
+
         public override void Execute()
         {
-            Console.WriteLine(DateTime.Now);
+            writer.Write(DateTime.Now.ToString());
         }
     }
 }

@@ -11,7 +11,7 @@ namespace DIContainer
         {
             var command = A.Fake<ICommand>();
             A.CallTo(() => command.Name).Returns("cmd");
-            var program = new Program(new CommandLineArgs("CMD"), command);
+            var program = new Program(new CommandLineArgs("CMD"), new TextWriter(), command);
 
             program.Run();
 
@@ -23,7 +23,7 @@ namespace DIContainer
         {
             var command = A.Fake<ICommand>();
             A.CallTo(() => command.Name).Returns("cmd");
-            var program = new Program(new CommandLineArgs("anotherCmd"), command);
+            var program = new Program(new CommandLineArgs("anotherCmd"), new TextWriter(),command);
 
             program.Run();
 
