@@ -18,20 +18,16 @@ namespace battleships
 				return;
 			}
 
-            var settings = new Settings("settings.txt");
-            var gen = new MapGenerator(settings, new Random(settings.RandomSeed));
-            var vis = new GameVisualizer();
-            var monitor = new ProcessMonitor(TimeSpan.FromSeconds(settings.TimeLimitSeconds * settings.GamesCount), settings.MemoryLimit);
-		    var aiTester = new AiTester(settings, gen, vis, monitor);
+            IKernel kernel = new StandardKernel();
+            kernel.Bind<Settings>().To<Settings>().WithConstructorArgument("settings.txt");
+            var settings = kernel.Get<Settings>();
+            kernel.Bind<Random>().ToConstant(new Random(settings.RandomSeed));
+            kernel.Bind<ProcessMonitor>().To<ProcessMonitor>()
+                .WithConstructorArgument(TimeSpan.FromSeconds(settings.TimeLimitSeconds * settings.GamesCount))
+                .WithConstructorArgument((long) settings.MemoryLimit);
             if (File.Exists(args[0]))
-                aiTester.TestSingleFile(args[0]);
+                kernel.Get<AiTester>().TestSingleFile(args[0]);
             else Console.WriteLine("No AI exe-file " + args[0]);
-            
-		    //IKernel kernel = new StandardKernel();
-		    //kernel.Bind<Settings>().To<Settings>().WithConstructorArgument("settings.txt");
-		    //if (File.Exists(args[0]))
-		    //    kernel.Get<AiTester>().TestSingleFile(args[0]);
-		    //else Console.WriteLine("No AI exe-file " + args[0]);
 		}
 	}
 }
