@@ -9,17 +9,20 @@ namespace battleships
 	{
 		private static readonly Logger resultsLog = LogManager.GetLogger("results");
 		private readonly Settings settings;
+	    private readonly MapGenerator generator;
+	    private readonly GameVisualizer visualizer;
+	    private readonly ProcessMonitor monitor;
 
-		public AiTester(Settings settings)
+		public AiTester(Settings settings, MapGenerator generator, GameVisualizer visualizer, ProcessMonitor monitor)
 		{
 			this.settings = settings;
+		    this.generator = generator;
+		    this.visualizer = visualizer;
+            this.monitor = monitor;
 		}
 
 		public void TestSingleFile(string exe)
 		{
-			var gen = new MapGenerator(settings, new Random(settings.RandomSeed));
-			var vis = new GameVisualizer();
-			var monitor = new ProcessMonitor(TimeSpan.FromSeconds(settings.TimeLimitSeconds * settings.GamesCount), settings.MemoryLimit);
 			var badShots = 0;
 			var crashes = 0;
 			var gamesPlayed = 0;
@@ -27,9 +30,9 @@ namespace battleships
 			var ai = new Ai(exe, monitor);
 			for (var gameIndex = 0; gameIndex < settings.GamesCount; gameIndex++)
 			{
-				var map = gen.GenerateMap();
+				var map = generator.GenerateMap();
 				var game = new Game(map, ai);
-				RunGameToEnd(game, vis);
+				RunGameToEnd(game, visualizer);
 				gamesPlayed++;
 				badShots += game.BadShots;
 				if (game.AiCrashed)
