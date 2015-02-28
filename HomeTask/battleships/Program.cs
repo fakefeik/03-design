@@ -22,6 +22,8 @@ namespace battleships
             kernel.Bind<Settings>().To<Settings>().WithConstructorArgument("settings.txt");
             var settings = kernel.Get<Settings>();
             kernel.Bind<Random>().ToConstant(new Random(settings.RandomSeed));
+		    kernel.Bind<IGameFactory>().To<GameFactory>();
+		    kernel.Bind<IAiFactory>().To<AiFactory>();
             kernel.Bind<ProcessMonitor>().To<ProcessMonitor>()
                 .WithConstructorArgument(TimeSpan.FromSeconds(settings.TimeLimitSeconds * settings.GamesCount))
                 .WithConstructorArgument((long) settings.MemoryLimit);

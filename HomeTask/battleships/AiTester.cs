@@ -12,13 +12,19 @@ namespace battleships
 	    private readonly MapGenerator generator;
 	    private readonly GameVisualizer visualizer;
 	    private readonly ProcessMonitor monitor;
+	    private readonly IGameFactory gameFactory;
+	    private readonly IAiFactory aiFactory;
 
-		public AiTester(Settings settings, MapGenerator generator, GameVisualizer visualizer, ProcessMonitor monitor)
+		public AiTester(Settings settings, MapGenerator generator, 
+            GameVisualizer visualizer, ProcessMonitor monitor,
+            IGameFactory gameFactory, IAiFactory aiFactory)
 		{
 			this.settings = settings;
 		    this.generator = generator;
 		    this.visualizer = visualizer;
             this.monitor = monitor;
+		    this.gameFactory = gameFactory;
+		    this.aiFactory = aiFactory;
 		}
 
 		public void TestSingleFile(string exe)
@@ -27,11 +33,11 @@ namespace battleships
 			var crashes = 0;
 			var gamesPlayed = 0;
 			var shots = new List<int>();
-			var ai = new Ai(exe, monitor);
+		    var ai = aiFactory.CreateAi(exe, monitor);
 			for (var gameIndex = 0; gameIndex < settings.GamesCount; gameIndex++)
 			{
 				var map = generator.GenerateMap();
-				var game = new Game(map, ai);
+			    var game = gameFactory.CreateGame(map, ai);
 				RunGameToEnd(game, visualizer);
 				gamesPlayed++;
 				badShots += game.BadShots;
@@ -39,7 +45,7 @@ namespace battleships
 				{
 					crashes++;
 					if (crashes > settings.CrashLimit) break;
-					ai = new Ai(exe, monitor);
+				    ai = aiFactory.CreateAi(exe, monitor);
 				}
 				else
 					shots.Add(game.TurnsCount);
