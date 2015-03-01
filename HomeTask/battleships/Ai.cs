@@ -11,12 +11,12 @@ namespace battleships
 		private static readonly Logger log = LogManager.GetCurrentClassLogger();
 		private Process process;
 		private readonly string exePath;
-		private readonly ProcessMonitor monitor;
+		private readonly Action<Process> registerProcess;
 
-		public Ai(string exePath, ProcessMonitor monitor)
+		public Ai(string exePath, Action<Process> registerProcess)
 		{
 			this.exePath = exePath;
-			this.monitor = monitor;
+			this.registerProcess = registerProcess;
 		}
 
 		public string Name
@@ -75,7 +75,7 @@ namespace battleships
 				WindowStyle = ProcessWindowStyle.Hidden
 			};
 			var aiProcess = Process.Start(startInfo);
-			monitor.Register(aiProcess);
+		    registerProcess(aiProcess);
 			return aiProcess;
 		}
 

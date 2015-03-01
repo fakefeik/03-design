@@ -15,6 +15,8 @@ namespace battleships
 	    private readonly IGameFactory gameFactory;
 	    private readonly IAiFactory aiFactory;
 
+	    //public event  onLog;
+
 		public AiTester(Settings settings, MapGenerator generator, 
             GameVisualizer visualizer, ProcessMonitor monitor,
             IGameFactory gameFactory, IAiFactory aiFactory)
@@ -33,7 +35,7 @@ namespace battleships
 			var crashes = 0;
 			var gamesPlayed = 0;
 			var shots = new List<int>();
-		    var ai = aiFactory.CreateAi(exe, monitor);
+		    var ai = aiFactory.CreateAi(exe, monitor.Register);
 			for (var gameIndex = 0; gameIndex < settings.GamesCount; gameIndex++)
 			{
 				var map = generator.GenerateMap();
@@ -45,7 +47,7 @@ namespace battleships
 				{
 					crashes++;
 					if (crashes > settings.CrashLimit) break;
-				    ai = aiFactory.CreateAi(exe, monitor);
+				    ai = aiFactory.CreateAi(exe, monitor.Register);
 				}
 				else
 					shots.Add(game.TurnsCount);
