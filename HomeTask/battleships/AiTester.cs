@@ -7,7 +7,6 @@ namespace battleships
 {
 	public class AiTester
 	{
-		private static readonly Logger resultsLog = LogManager.GetLogger("results");
 		private readonly Settings settings;
 	    private readonly MapGenerator generator;
 	    private readonly GameVisualizer visualizer;
@@ -15,7 +14,7 @@ namespace battleships
 	    private readonly IGameFactory gameFactory;
 	    private readonly IAiFactory aiFactory;
 
-	    //public event  onLog;
+	    public event Action<string> onLog;
 
 		public AiTester(Settings settings, MapGenerator generator, 
             GameVisualizer visualizer, ProcessMonitor monitor,
@@ -90,12 +89,13 @@ namespace battleships
 			var score = efficiencyScore - crashPenalty - badFraction;
 			var headers = FormatTableRow(new object[] { "AiName", "Mean", "Sigma", "Median", "Crashes", "Bad%", "Games", "Score" });
 			var message = FormatTableRow(new object[] { ai.Name, mean, sigma, median, crashes, badFraction, gamesPlayed, score });
-			resultsLog.Info(message);
-			Console.WriteLine();
+			onLog.Invoke(message + ":VERY IMPORTANT MESSAGE");
+            Console.WriteLine();
 			Console.WriteLine("Score statistics");
 			Console.WriteLine("================");
 			Console.WriteLine(headers);
 			Console.WriteLine(message);
+            
 		}
 
 		private string FormatTableRow(object[] values)

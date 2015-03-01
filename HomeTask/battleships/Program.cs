@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using Ninject;
+using NLog;
 
 namespace battleships
 {
@@ -17,7 +18,7 @@ namespace battleships
 				Console.WriteLine("Usage: {0} <ai.exe>", Process.GetCurrentProcess().ProcessName);
 				return;
 			}
-
+            Logger resultsLog = LogManager.GetLogger("results");
             IKernel kernel = new StandardKernel();
             kernel.Bind<Settings>().To<Settings>().WithConstructorArgument("settings.txt");
             var settings = kernel.Get<Settings>();
@@ -27,8 +28,10 @@ namespace battleships
             kernel.Bind<ProcessMonitor>().To<ProcessMonitor>()
                 .WithConstructorArgument(TimeSpan.FromSeconds(settings.TimeLimitSeconds * settings.GamesCount))
                 .WithConstructorArgument((long) settings.MemoryLimit);
+		    var tester = kernel.Get<AiTester>();
+		    tester.onLog += resultsLog.Info;
             if (File.Exists(args[0]))
-                kernel.Get<AiTester>().TestSingleFile(args[0]);
+                tester.TestSingleFile(args[0]);
             else Console.WriteLine("No AI exe-file " + args[0]);
 		}
 	}
