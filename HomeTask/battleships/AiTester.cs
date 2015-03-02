@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NLog;
 
 namespace battleships
@@ -8,57 +9,49 @@ namespace battleships
 	public class AiTester
 	{
 		private readonly Settings settings;
-	    private readonly MapGenerator generator;
 	    private readonly GameVisualizer visualizer;
-	    private readonly ProcessMonitor monitor;
-	    private readonly IGameFactory gameFactory;
-	    private readonly IAiFactory aiFactory;
+	    
+        public Ai Ai { get; set; }
+	    public Game Game { get; set; }
 
-	    public event Action<string> onLog;
+	    public event Action onGameCrashed;
+	    public event Action onCreateGame;
 
-		public AiTester(Settings settings, MapGenerator generator, 
-            GameVisualizer visualizer, ProcessMonitor monitor,
-            IGameFactory gameFactory, IAiFactory aiFactory)
+		public AiTester(Settings settings, GameVisualizer visualizer)
 		{
 			this.settings = settings;
-		    this.generator = generator;
 		    this.visualizer = visualizer;
-            this.monitor = monitor;
-		    this.gameFactory = gameFactory;
-		    this.aiFactory = aiFactory;
 		}
 
-		public void TestSingleFile(string exe)
+		public StatisticsWriter TestSingleFile(string exe)
 		{
 			var badShots = 0;
 			var crashes = 0;
 			var gamesPlayed = 0;
 			var shots = new List<int>();
-		    var ai = aiFactory.CreateAi(exe, monitor.Register);
 			for (var gameIndex = 0; gameIndex < settings.GamesCount; gameIndex++)
 			{
-				var map = generator.GenerateMap();
-			    var game = gameFactory.CreateGame(map, ai);
-				RunGameToEnd(game, visualizer);
+                onCreateGame.Invoke();
+				RunGameToEnd(Game, visualizer);
 				gamesPlayed++;
-				badShots += game.BadShots;
-				if (game.AiCrashed)
+				badShots += Game.BadShots;
+				if (Game.AiCrashed)
 				{
 					crashes++;
 					if (crashes > settings.CrashLimit) break;
-				    ai = aiFactory.CreateAi(exe, monitor.Register);
+                    onGameCrashed.Invoke();
 				}
 				else
-					shots.Add(game.TurnsCount);
+					shots.Add(Game.TurnsCount);
 				if (settings.Verbose)
 				{
 					Console.WriteLine(
 						"Game #{3,4}: Turns {0,4}, BadShots {1}{2}",
-						game.TurnsCount, game.BadShots, game.AiCrashed ? ", Crashed" : "", gameIndex);
+						Game.TurnsCount, Game.BadShots, Game.AiCrashed ? ", Crashed" : "", gameIndex);
 				}
 			}
-			ai.Dispose();
-			WriteTotal(ai, shots, crashes, badShots, gamesPlayed);
+			Ai.Dispose();
+			return new StatisticsWriter(settings, Ai, shots, crashes, badShots, gamesPlayed);
 		}
 
 		private void RunGameToEnd(Game game, GameVisualizer vis)
@@ -74,39 +67,6 @@ namespace battleships
 					Console.ReadKey();
 				}
 			}
-		}
-
-		private void WriteTotal(Ai ai, List<int> shots, int crashes, int badShots, int gamesPlayed)
-		{
-			if (shots.Count == 0) shots.Add(1000 * 1000);
-			shots.Sort();
-			var median = shots.Count % 2 == 1 ? shots[shots.Count / 2] : (shots[shots.Count / 2] + shots[(shots.Count + 1) / 2]) / 2;
-			var mean = shots.Average();
-			var sigma = Math.Sqrt(shots.Average(s => (s - mean) * (s - mean)));
-			var badFraction = (100.0 * badShots) / shots.Sum();
-			var crashPenalty = 100.0 * crashes / settings.CrashLimit;
-			var efficiencyScore = 100.0 * (settings.Width * settings.Height - mean) / (settings.Width * settings.Height);
-			var score = efficiencyScore - crashPenalty - badFraction;
-			var headers = FormatTableRow(new object[] { "AiName", "Mean", "Sigma", "Median", "Crashes", "Bad%", "Games", "Score" });
-			var message = FormatTableRow(new object[] { ai.Name, mean, sigma, median, crashes, badFraction, gamesPlayed, score });
-			onLog.Invoke(message + ":VERY IMPORTANT MESSAGE");
-            Console.WriteLine();
-			Console.WriteLine("Score statistics");
-			Console.WriteLine("================");
-			Console.WriteLine(headers);
-			Console.WriteLine(message);
-            
-		}
-
-		private string FormatTableRow(object[] values)
-		{
-			return FormatValue(values[0], 15) 
-				+ string.Join(" ", values.Skip(1).Select(v => FormatValue(v, 7)));
-		}
-
-		private static string FormatValue(object v, int width)
-		{
-			return v.ToString().Replace("\t", " ").PadRight(width).Substring(0, width);
 		}
 	}
 }
