@@ -15,10 +15,10 @@ namespace battleships
 		private readonly List<Process> processes = new List<Process>();
 		private readonly TimeSpan timeLimit;
 
-		public ProcessMonitor(TimeSpan timeLimit, long memoryLimit)
+		public ProcessMonitor(Settings settings)
 		{
-			this.timeLimit = timeLimit;
-			this.memoryLimit = memoryLimit;
+		    timeLimit = TimeSpan.FromSeconds(settings.TimeLimitSeconds*settings.GamesCount);
+			memoryLimit = settings.MemoryLimit;
 			CreateMonitoringThread().Start();
 		}
 
