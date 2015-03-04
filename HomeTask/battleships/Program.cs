@@ -24,7 +24,6 @@ namespace battleships
             kernel.Bind<Random>().ToConstant(new Random(settings.RandomSeed));
 		    kernel.Bind<IGameFactory>().To<GameFactory>();
 		    kernel.Bind<IAiFactory>().To<AiFactory>();
-            kernel.Bind<ProcessMonitor>().To<ProcessMonitor>().WithConstructorArgument(settings);
             if (File.Exists(args[0]))
                 kernel.Get<AiTester>().TestSingleFile(args[0]);
             else Console.WriteLine("No AI exe-file " + args[0]);

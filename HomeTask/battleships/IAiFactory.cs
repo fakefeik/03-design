@@ -8,6 +8,6 @@ namespace battleships
 {
     public interface IAiFactory
     {
-        Ai CreateAi(string exe, ProcessMonitor monitor);
+        Ai CreateAi(string exe);
     }
 }

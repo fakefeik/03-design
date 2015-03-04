@@ -8,7 +8,14 @@ namespace battleships
 {
     public class AiFactory : IAiFactory
     {
-        public Ai CreateAi(string exe, ProcessMonitor monitor)
+        private ProcessMonitor monitor;
+
+        public AiFactory(ProcessMonitor monitor)
+        {
+            this.monitor = monitor;
+        }
+
+        public Ai CreateAi(string exe)
         {
             return new Ai(exe, monitor);
         }
